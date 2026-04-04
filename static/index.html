@@ -1,11 +1,35 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-</head>
-<body>
-  <div>Hello world</div>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <script src="my_script.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <table>
+      <tr>
+        <td valign="top" width="50%">
+          <p>
+            Click "Open" to create a connection to the server, "Send" to send a
+            message to the server and "Close" to close the connection. You can
+            change the message and send multiple times.
+          </p>
+
+          <p></p>
+          <form>
+            <button id="open">Open</button>
+            <button id="close">Close</button>
+            <p>
+              <input id="input" type="text" value="Hello world!" />
+              <button id="send">Send</button>
+            </p>
+          </form>
+        </td>
+        <td valign="top" width="50%">
+          <div id="output" style="max-height: 70vh; overflow-y: scroll"></div>
+        </td>
+      </tr>
+    </table>
+  </body>
 </html>
