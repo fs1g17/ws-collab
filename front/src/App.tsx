@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { useEffect, useRef, useState } from "react";
 
 /** Static copy for layout only — replace with real messages when you wire WebSockets. */
 const PLACEHOLDER_MESSAGES = [
@@ -69,8 +70,39 @@ const PLACEHOLDER_MESSAGES = [
 ] as const;
 
 function App() {
+  const [name, setName] = useState<string>("");
+  const [content, setContent] = useState<string>("");
+
+  const connection = useRef<WebSocket>(null);
+
+  useEffect(() => {
+    const socket = new WebSocket("ws://localhost:8080/api/echo");
+
+    socket.addEventListener("open", (event) => {
+      console.log("Connection established");
+    });
+
+    socket.addEventListener("message", (event) => {
+      console.log("Message from server ", event.data);
+    });
+
+    connection.current = socket;
+
+    return () => connection.current.close();
+  }, []);
+
+  const onSend = () => {
+    if (!connection) return;
+
+    connection.current.send(JSON.stringify({ name, content }));
+  };
+
+  if (!connection.current) {
+    return <div>Unable to connect to server</div>;
+  }
+
   return (
-    <div className="relative min-h-dvh bg-gradient-to-b from-muted/60 via-background to-background">
+    <div className="relative min-h-dvh bg-linear-to-b from-muted/60 via-background to-background">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,oklch(0.85_0.12_140/0.25),transparent)]"
@@ -97,6 +129,8 @@ function App() {
                 defaultValue="Guest"
                 placeholder="How you appear to others"
                 className="bg-background/80"
+                value={name}
+                onChange={(e) => setName(e.currentTarget.value)}
               />
             </div>
           </CardHeader>
@@ -163,9 +197,15 @@ function App() {
                 defaultValue=""
                 placeholder="Type a message…"
                 className="min-h-9 bg-background"
+                value={content}
+                onChange={(e) => setContent(e.currentTarget.value)}
               />
             </div>
-            <Button type="button" className="w-full shrink-0 gap-2 sm:w-auto">
+            <Button
+              type="button"
+              className="w-full shrink-0 gap-2 sm:w-auto"
+              onClick={onSend}
+            >
               Send
               <Send className="size-4" aria-hidden />
             </Button>
