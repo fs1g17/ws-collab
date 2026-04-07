@@ -1,6 +1,5 @@
 import { Send } from "lucide-react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,92 +13,60 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
 
-/** Static copy for layout only — replace with real messages when you wire WebSockets. */
-const PLACEHOLDER_MESSAGES = [
-  {
-    id: "m1",
-    author: "Alex",
-    initials: "A",
-    time: "10:02",
-    text: "Hey everyone — is the server up?",
-    isSelf: false,
-  },
-  {
-    id: "m2",
-    author: "Jordan",
-    initials: "J",
-    time: "10:03",
-    text: "Yep, I’m connected from the lobby room.",
-    isSelf: false,
-  },
-  {
-    id: "m3",
-    author: "You",
-    initials: "Y",
-    time: "10:04",
-    text: "Nice. I’ll try reconnecting on my side.",
-    isSelf: true,
-  },
-  {
-    id: "m4",
-    author: "Sam",
-    initials: "S",
-    time: "10:05",
-    text: "If anyone sees duplicate messages, ping me — might be a client bug.",
-    isSelf: false,
-  },
-  {
-    id: "m5",
-    author: "Alex",
-    initials: "A",
-    time: "10:06",
-    text: "Sounds good. Rolling out a small UI tweak after lunch.",
-    isSelf: false,
-  },
-  {
-    id: "m6",
-    author: "You",
-    initials: "Y",
-    time: "10:07",
-    text: "👍",
-    isSelf: true,
-  },
-] as const;
+interface Message {
+  name: string;
+  content: string;
+}
 
 function App() {
   const [name, setName] = useState<string>("");
   const [content, setContent] = useState<string>("");
+  const [messages, setMessages] = useState<Message[]>([]);
 
-  const connection = useRef<WebSocket>(null);
+  const connection = useRef<WebSocket | null>(null);
 
   useEffect(() => {
+    if (connection.current) {
+      console.log("connection already established");
+      return;
+    }
+
+    console.log("running websocket initialisation");
+
     const socket = new WebSocket("ws://localhost:8080/api/echo");
 
+    // Connection opened
     socket.addEventListener("open", (event) => {
-      console.log("Connection established");
+      console.log("Connection established!");
     });
 
+    // Listen for messages
     socket.addEventListener("message", (event) => {
       console.log("Message from server ", event.data);
+      const message: Message = JSON.parse(event.data) as Message;
+      setMessages((prev) => [...prev, message]);
     });
 
     connection.current = socket;
 
-    return () => connection.current.close();
+    return () => {
+      console.log("running cleanup");
+      //connection.current.close();
+    };
   }, []);
 
   const onSend = () => {
     if (!connection) return;
 
     connection.current.send(JSON.stringify({ name, content }));
+    setContent("");
   };
 
-  if (!connection.current) {
-    return <div>Unable to connect to server</div>;
-  }
+  // if (!connection.current) {
+  //   return <div>Unable to connect to server</div>;
+  // }
 
   return (
     <div className="relative min-h-dvh bg-linear-to-b from-muted/60 via-background to-background">
@@ -139,46 +106,13 @@ function App() {
             <Separator />
             <ScrollArea className="min-h-[min(52vh,420px)] flex-1 px-4 py-4 sm:min-h-[min(48vh,480px)]">
               <ul className="flex flex-col gap-3 pr-2 pb-1">
-                {PLACEHOLDER_MESSAGES.map((msg) => (
-                  <li
-                    key={msg.id}
-                    className={cn(
-                      "flex gap-2.5",
-                      msg.isSelf ? "flex-row-reverse" : "flex-row",
-                    )}
-                  >
-                    <Avatar size="sm" className="mt-0.5">
-                      <AvatarFallback className="bg-muted text-xs font-medium">
-                        {msg.initials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div
-                      className={cn(
-                        "flex max-w-[min(100%,18rem)] flex-col gap-1 sm:max-w-[20rem]",
-                        msg.isSelf ? "items-end" : "items-start",
-                      )}
-                    >
-                      <div
-                        className={cn(
-                          "flex items-baseline gap-2 text-xs text-muted-foreground",
-                          msg.isSelf && "flex-row-reverse",
-                        )}
-                      >
-                        <span className="font-medium text-foreground">
-                          {msg.author}
-                        </span>
-                        <span>{msg.time}</span>
-                      </div>
-                      <div
-                        className={cn(
-                          "rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed shadow-sm ring-1 ring-black/5 dark:ring-white/10",
-                          msg.isSelf
-                            ? "rounded-tr-md bg-primary text-primary-foreground"
-                            : "rounded-tl-md bg-muted text-foreground",
-                        )}
-                      >
-                        {msg.text}
-                      </div>
+                {messages.map((msg, i) => (
+                  <li key={i} className="flex flex-col gap-1.5">
+                    <span className="text-xs font-medium tracking-tight text-muted-foreground">
+                      {msg.name}
+                    </span>
+                    <div className="rounded-xl border border-border/70 bg-background/90 px-3.5 py-2.5 text-sm leading-relaxed text-foreground shadow-sm ring-1 ring-black/3 dark:ring-white/6">
+                      {msg.content}
                     </div>
                   </li>
                 ))}

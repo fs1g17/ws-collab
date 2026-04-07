@@ -8,7 +8,7 @@ import (
 )
 
 func serve(hub *Hub, w http.ResponseWriter, r *http.Request) {
-	c, err := websocket.Accept(w, r, nil)
+	c, err := websocket.Accept(w, r, &websocket.AcceptOptions{InsecureSkipVerify: true})
 	if err != nil {
 		log.Printf("error1: %v", err)
 		return
