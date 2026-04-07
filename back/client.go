@@ -18,9 +18,16 @@ func (c *Client) read() {
 	for {
 		_, r, err := c.conn.Read(ctx)
 		if err != nil {
-			log.Printf("error in read: %v", err)
+			if websocket.CloseStatus(err) == websocket.StatusNormalClosure ||
+				websocket.CloseStatus(err) == websocket.StatusGoingAway {
+				// websocket hung up on the other end
+				log.Println("socket hung up on the other end, unregistering")
+				c.hub.unregister <- c
+				return
+			}
+			log.Printf("error in read: %v\n", err)
 			c.conn.Close(websocket.StatusAbnormalClosure, "error")
-			break
+			return
 		}
 		c.hub.message <- r
 	}
@@ -32,9 +39,16 @@ func (c *Client) write() {
 		msg := <-c.send
 		err := c.conn.Write(ctx, websocket.MessageText, msg)
 		if err != nil {
-			log.Printf("error in write: %v", err)
+			if websocket.CloseStatus(err) == websocket.StatusNormalClosure ||
+				websocket.CloseStatus(err) == websocket.StatusGoingAway {
+				// websocket hung up on the other end
+				log.Println("socket hung up on the other end, unregistering")
+				c.hub.unregister <- c
+				return
+			}
+			log.Printf("error in read: %v\n", err)
 			c.conn.Close(websocket.StatusAbnormalClosure, "error")
-			break
+			return
 		}
 	}
 }

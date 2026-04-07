@@ -28,13 +28,13 @@ func (h *Hub) run() {
 		case client := <-h.unregister:
 			delete(h.clients, client)
 		case msg := <-h.message:
-			fmt.Printf("recieved message: %v", msg)
+			fmt.Printf("recieved message: %v\n", string(msg))
 			// loop over clients and push message into their send channels
 
 			var i int = 0
 			for client := range h.clients {
 				client.send <- msg
-				fmt.Printf("sent message to client %d", i)
+				fmt.Printf("sent message to client %d\n", i)
 				i++
 			}
 
