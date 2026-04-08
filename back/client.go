@@ -26,7 +26,7 @@ func (c *Client) read() {
 				return
 			}
 			log.Printf("error in read: %v\n", err)
-			c.conn.Close(websocket.StatusAbnormalClosure, "error")
+			c.conn.Close(websocket.StatusInternalError, "error")
 			return
 		}
 		c.hub.message <- r
@@ -46,8 +46,8 @@ func (c *Client) write() {
 				c.hub.unregister <- c
 				return
 			}
-			log.Printf("error in read: %v\n", err)
-			c.conn.Close(websocket.StatusAbnormalClosure, "error")
+			log.Printf("error in write: %v\n", err)
+			c.conn.Close(websocket.StatusInternalError, "error")
 			return
 		}
 	}
