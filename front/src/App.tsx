@@ -53,7 +53,8 @@ function App() {
 
     return () => {
       console.log("running cleanup");
-      //connection.current.close();
+      connection.current.close();
+      connection.current = null;
     };
   }, []);
 
@@ -63,10 +64,6 @@ function App() {
     connection.current.send(JSON.stringify({ name, content }));
     setContent("");
   };
-
-  // if (!connection.current) {
-  //   return <div>Unable to connect to server</div>;
-  // }
 
   return (
     <div className="relative min-h-dvh bg-linear-to-b from-muted/60 via-background to-background">
