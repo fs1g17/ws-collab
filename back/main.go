@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 
@@ -8,12 +9,13 @@ import (
 )
 
 func serve(hub *Hub, w http.ResponseWriter, r *http.Request) {
-	c, err := websocket.Accept(w, r, nil)
+	c, err := websocket.Accept(w, r, &websocket.AcceptOptions{InsecureSkipVerify: true})
 	if err != nil {
 		log.Printf("error1: %v", err)
 		return
 	}
-	client := &Client{hub: hub, send: make(chan []byte), conn: c}
+	ctx, cancel := context.WithCancel(context.Background())
+	client := &Client{hub: hub, send: make(chan []byte), conn: c, ctx: ctx, cancel: cancel}
 	hub.register <- client
 	go client.read()
 	go client.write()
