@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+
+	"github.com/coder/websocket"
 )
 
 type Hub struct {
@@ -24,12 +26,17 @@ func (h *Hub) run() {
 	for {
 		select {
 		case client := <-h.register:
+			fmt.Println("adding client: ")
 			h.clients[client] = true
+			fmt.Println("number of clients NOW: ", len(h.clients))
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
+				fmt.Printf("deleting client: ")
 				delete(h.clients, client)
 				client.cancel()
 				close(client.send)
+				client.conn.Close(websocket.StatusNormalClosure, "poop")
+				fmt.Println("number of clients NOW: ", len(h.clients))
 			}
 		case msg := <-h.message:
 			fmt.Printf("recieved message: %v\n", string(msg))
