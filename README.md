@@ -1,4 +1,4 @@
-# ws-chat
+# ws-collab
 
 This is a small little project I've built to learn about WebSockets in Go and React.
 

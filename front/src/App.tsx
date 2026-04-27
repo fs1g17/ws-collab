@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Textarea } from "./components/ui/textarea";
 import useDebounce from "./hooks/useDebounce";
+import { cn } from "./lib/utils";
 
 interface Message {
   content: string;
@@ -8,18 +9,18 @@ interface Message {
 
 type Status = "open" | "connecting" | "closed";
 
-// const statusClassMap = {
-//   open: "bg-green-200",
-//   connecting: "bg-yellow-200",
-//   closed: "bg-gray-200",
-// };
+const statusClassMap = {
+  open: "bg-green-200",
+  connecting: "bg-yellow-200",
+  closed: "bg-gray-200",
+};
 
 function App() {
   const [content, setContent] = useState<string>("");
   const debounced = useDebounce(content, 1000);
 
   const connection = useRef<WebSocket | null>(null);
-  const [_, setStatus] = useState<Status>("closed");
+  const [status, setStatus] = useState<Status>("closed");
 
   const [retryCounter, setRetryCounter] = useState<number>(0);
 
@@ -98,9 +99,14 @@ function App() {
       />
       <div className="relative flex min-h-dvh flex-col items-center justify-center px-4 py-8">
         <div className="flex w-full max-w-3xl flex-col gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Collaborative Editor
-          </h1>
+          <div className="flex items-center gap-2">
+            <div
+              className={cn("h-3 w-3 rounded-full", statusClassMap[status])}
+            />
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Collaborative Editor
+            </h1>
+          </div>
           <p className="text-sm text-muted-foreground">
             Start typing to collaborate in real time.
           </p>
